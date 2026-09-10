@@ -43,14 +43,12 @@ LIGHT_BROWN = (205, 145, 80)
 # 폰트
 # =========================================================
 
-font_small = pygame.font.Font(None, 30)
-font_medium = pygame.font.Font(None, 42)
-font_big = pygame.font.Font(None, 70)
-# 실행 위치나 심볼릭 링크와 관계없이 프로젝트의 한글 폰트를 사용한다.
-font_title = pygame.font.Font(
-    str(Path(__file__).resolve().parent / "assets" / "fonts" / "NanumGothic-Regular.ttf"),
-    64,
-)
+# 모든 화면 문구에 한글 폰트를 사용한다.
+FONT_PATH = str(Path(__file__).resolve().parent / "assets" / "fonts" / "NanumGothic-Regular.ttf")
+font_small = pygame.font.Font(FONT_PATH, 22)
+font_medium = pygame.font.Font(FONT_PATH, 30)
+font_big = pygame.font.Font(FONT_PATH, 56)
+font_title = pygame.font.Font(FONT_PATH, 64)
 
 @lru_cache(maxsize=256)
 def render_text(font, text, color):
@@ -253,7 +251,7 @@ def draw_start_screen():
         )
     )
 
-    subtitle = render_text(font_medium, "3 INNING GAME", YELLOW)
+    subtitle = render_text(font_medium, "3이닝 경기", YELLOW)
 
     screen.blit(
         subtitle,
@@ -264,7 +262,7 @@ def draw_start_screen():
 
     draw_button(
         start_button,
-        "START / ENTER"
+        "시작 / 엔터"
     )
 
 # =========================================================
@@ -428,7 +426,7 @@ def draw_strike_zone():
         3
     )
 
-    text = render_text(font_small, "STRIKE ZONE", WHITE)
+    text = render_text(font_small, "스트라이크 존", WHITE)
 
     screen.blit(
         text,
@@ -589,31 +587,31 @@ def draw_scoreboard():
 
     texts = [
         (
-            f"INNING {inning} / 3",
+            f"이닝 {inning} / 3",
             WHITE,
             40,
             35
         ),
         (
-            f"BALL    {balls}",
+            f"볼       {balls}",
             (100, 255, 100),
             40,
             85
         ),
         (
-            f"STRIKE  {strikes}",
+            f"스트라이크 {strikes}",
             YELLOW,
             40,
             112
         ),
         (
-            f"OUT     {outs}",
+            f"아웃    {outs}",
             RED,
             40,
             139
         ),
         (
-            f"SCORE {score}",
+            f"점수 {score}",
             WHITE,
             170,
             139
@@ -731,13 +729,13 @@ def add_outs(amount=1):
         if inning > 3:
 
             game_state = "GAME_OVER"
-            message = "GAME OVER"
+            message = "경기 종료"
 
             return True
 
         else:
 
-            message = "CHANGE INNING"
+            message = "다음 이닝"
 
         return True
 
@@ -863,7 +861,7 @@ def fly_out():
             third_scored = True
 
             extra_messages.append(
-                "3B RUNNER SCORED"
+                "3루 주자 득점"
             )
 
         else:
@@ -871,7 +869,7 @@ def fly_out():
             base3 = True
 
             extra_messages.append(
-                "3B RUNNER HELD"
+                "3루 주자 대기"
             )
 
     # 2루 주자
@@ -895,7 +893,7 @@ def fly_out():
                 base3 = True
 
                 extra_messages.append(
-                    "2B RUNNER TO 3B"
+                    "2루 주자 3루 진루"
                 )
 
             else:
@@ -903,18 +901,18 @@ def fly_out():
                 base2 = True
 
                 extra_messages.append(
-                    "2B RUNNER HELD"
+                    "2루 주자 대기"
                 )
 
     if extra_messages:
 
-        message = "FLY OUT / " + " / ".join(
+        message = "뜬공 아웃 / " + " / ".join(
             extra_messages
         )
 
     else:
 
-        message = "FLY OUT"
+        message = "뜬공 아웃"
 
 # =========================================================
 # 땅볼
@@ -936,7 +934,7 @@ def ground_ball():
             inning_ended = add_outs(2)
 
             if not inning_ended:
-                message = "DOUBLE PLAY!"
+                message = "병살타!"
 
             return
 
@@ -944,7 +942,7 @@ def ground_ball():
     inning_ended = add_outs(1)
 
     if not inning_ended:
-        message = "GROUND OUT"
+        message = "땅볼 아웃"
 
 # =========================================================
 # 타격 결과 확률
@@ -1011,22 +1009,22 @@ def apply_batting_result(result):
     if result == "SINGLE":
 
         hit_single()
-        message = "SINGLE!"
+        message = "1루타!"
 
     elif result == "DOUBLE":
 
         hit_double()
-        message = "DOUBLE!"
+        message = "2루타!"
 
     elif result == "TRIPLE":
 
         hit_triple()
-        message = "TRIPLE!"
+        message = "3루타!"
 
     elif result == "HOMERUN":
 
         hit_homerun()
-        message = "HOME RUN!"
+        message = "홈런!"
 
     elif result == "FLY":
 
@@ -1067,10 +1065,10 @@ def swing_bat():
     if pitch_progress >= CONTACT_START and touching:
         contact = "HANDLE" if ball_x - bat.left <= HANDLE_WIDTH else "CENTER"
         pending_swing_result = choose_batting_result(contact)
-        message = "GOOD CONTACT!" if contact == "CENTER" else "HANDLE CONTACT!"
+        message = "정타!" if contact == "CENTER" else "손잡이에 맞았습니다!"
     else:
         pending_swing_result = "MISS"
-        message = "TOO EARLY!" if pitch_progress < CONTACT_START else "SWING!"
+        message = "스윙이 너무 빠릅니다!" if pitch_progress < CONTACT_START else "스윙!"
     # 판정만 저장한다. 타구 결과/삼진/게임 종료는 공이 도착한 뒤 반영한다.
 
 
@@ -1086,9 +1084,9 @@ def finish_pitch():
         judge_pitch()
     elif result == "MISS":
         strikes += 1
-        message = "SWING STRIKE!"
+        message = "헛스윙!"
         if strikes >= 3:
-            message = "SWING STRIKE OUT!"
+            message = "헛스윙 삼진!"
             add_outs(1)
         if game_state != "GAME_OVER":
             game_state = "RESULT"
@@ -1116,11 +1114,11 @@ def judge_pitch():
 
         strikes += 1
 
-        message = "CALLED STRIKE!"
+        message = "스트라이크!"
 
         if strikes >= 3:
 
-            message = "STRIKE OUT!"
+            message = "루킹 삼진!"
 
             add_outs(1)
 
@@ -1128,7 +1126,7 @@ def judge_pitch():
 
         balls += 1
 
-        message = "BALL!"
+        message = "볼!"
 
         if balls >= 4:
 
@@ -1136,7 +1134,7 @@ def judge_pitch():
 
             reset_count()
 
-            message = "WALK!"
+            message = "볼넷!"
 
     if game_state != "GAME_OVER":
 
@@ -1183,7 +1181,7 @@ def new_game():
     swung = False
     last_pitch = None
 
-    message = "PRESS ENTER / READY"
+    message = "엔터를 눌러 투구 시작"
 
     game_state = "READY"
 
@@ -1209,7 +1207,7 @@ def start_windup():
 
     windup_start = pygame.time.get_ticks()
 
-    message = "PITCHER WINDUP..."
+    message = "투수 준비 중..."
 
 # =========================================================
 # 투구 시작
@@ -1232,7 +1230,7 @@ def start_pitch():
     ball_x, ball_y, ball_radius = pitch_pose(0)
     pitch_start = pygame.time.get_ticks()
     game_state = "PITCHING"
-    message = "PITCH!"
+    message = "투구!"
 
 
 def pitch_pose(progress):
@@ -1316,7 +1314,7 @@ def start_batted_ball(result):
                        grounder=grounder, start=pygame.time.get_ticks(),
                        contact=(ball_x, ball_y))
     game_state = "BATTED"
-    message = "HOME RUN!" if result == "HOMERUN" else "BALL IN PLAY!"
+    message = "홈런!" if result == "HOMERUN" else "타구가 날아갑니다!"
 
 
 def batted_pose(progress):
@@ -1420,20 +1418,23 @@ def start_with_enter():
 # =========================================================
 
 def draw_message():
-
-    text = render_text(font_medium, message, YELLOW)
-
-    rect = text.get_rect(
-        center=(
-            WIDTH // 2,
-            60
-        )
-    )
-
-    screen.blit(
-        text,
-        rect
-    )
+    # 점수판 오른쪽의 공간에 긴 진루 안내를 줄바꿈하여 표시한다.
+    area = pygame.Rect(330, 25, WIDTH - 350, 145)
+    lines = []
+    line = ""
+    for word in message.split():
+        candidate = f"{line} {word}" if line else word
+        if line and font_medium.size(candidate)[0] > area.width:
+            lines.append(line)
+            line = word
+        else:
+            line = candidate
+    if line:
+        lines.append(line)
+    for index, line in enumerate(lines):
+        text = render_text(font_medium, line, YELLOW)
+        rect = text.get_rect(midtop=(area.centerx, area.top + index * (font_medium.get_linesize() + 4)))
+        screen.blit(text, rect)
 
 # =========================================================
 # 도움말
@@ -1441,7 +1442,7 @@ def draw_message():
 
 def draw_controls():
 
-    text = render_text(font_small, "ENTER = PITCH    MOUSE = AIM    SPACE = SWING", WHITE)
+    text = render_text(font_small, "엔터: 투구 시작    마우스: 조준    스페이스: 스윙    이스케이프: 종료", WHITE)
 
     screen.blit(text, text.get_rect(center=(WIDTH // 2, HEIGHT - 22)))
 
@@ -1455,7 +1456,7 @@ def draw_game_over():
 
     set_cursor_visible(True)
 
-    title = render_text(font_big, "GAME OVER", WHITE)
+    title = render_text(font_big, "경기 종료", WHITE)
 
     screen.blit(
         title,
@@ -1464,7 +1465,7 @@ def draw_game_over():
         )
     )
 
-    score_text = render_text(font_medium, f"SCORE : {score}", YELLOW)
+    score_text = render_text(font_medium, f"최종 점수: {score}", YELLOW)
 
     screen.blit(
         score_text,
@@ -1475,7 +1476,7 @@ def draw_game_over():
 
     draw_button(
         start_button,
-        "RETRY / ENTER"
+        "다시 시작 / 엔터"
     )
 
 # =========================================================
@@ -1586,7 +1587,7 @@ if __name__ == "__main__":
 
                 game_state = "READY"
 
-                message = "PRESS ENTER / READY"
+                message = "엔터를 눌러 투구 시작"
 
         # -----------------------------------------------------
         # 화면 출력
@@ -1621,22 +1622,22 @@ if __name__ == "__main__":
             # 투구 버튼
             if game_state == "READY":
 
-                button_text = "READY / PITCH"
+                button_text = "투구 시작"
                 enabled = True
 
             elif game_state == "WINDUP":
 
-                button_text = "WINDUP..."
+                button_text = "투구 준비 중..."
                 enabled = False
 
             elif game_state == "PITCHING":
 
-                button_text = "SWING!"
+                button_text = "스윙!"
                 enabled = False
 
             else:
 
-                button_text = "WAIT..."
+                button_text = "대기 중..."
                 enabled = False
 
             draw_button(

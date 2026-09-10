@@ -56,6 +56,6 @@ git push
 
 ## 한글 폰트
 
-게임 제목은 프로젝트에 포함된 나눔고딕 폰트로 표시합니다. 다른 컴퓨터에서도 `assets/fonts` 폴더를 함께 유지하세요.
+게임 화면의 버튼, 점수판, 조작 안내와 결과 메시지는 한글로 표시합니다. 포지션 표기와 구종 이름은 영문으로 유지합니다. 모든 글자는 프로젝트에 포함된 나눔고딕 폰트로 표시합니다. 다른 컴퓨터에서도 `assets/fonts` 폴더를 함께 유지하세요.
 
 폰트 출처: [Google Fonts의 Nanum Gothic](https://github.com/google/fonts/tree/main/ofl/nanumgothic). 폰트에는 SIL Open Font License 1.1이 적용되며, 전문은 [assets/fonts/OFL.txt](assets/fonts/OFL.txt)에 있습니다. 이 라이선스는 포함된 폰트에 적용됩니다.
