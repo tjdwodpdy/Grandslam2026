@@ -1,4 +1,4 @@
-# 2D Baseball
+# 그랜드슬램 2026
 
 Python과 Pygame으로 만든 3이닝 타격 게임입니다.
 
@@ -12,7 +12,7 @@ Python 3.13과 Pygame 2.6.1 환경에서 검증했습니다. 게임 창을 표�
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -r requirements.txt
-python3 01.py
+python3 Grandslam2026.py
 ```
 
 Windows에서는 `python3` 대신 `py`를 사용하고, 가상환경은 PowerShell에서 `.venv\Scripts\Activate.ps1`로 활성화합니다.
@@ -47,9 +47,15 @@ GitHub 연결을 마친 뒤 코드를 수정하면 다음 순서로 기록합니
 
 ```bash
 git diff
-git add 01.py README.md requirements.txt .gitignore
+git add Grandslam2026.py README.md requirements.txt .gitignore
 git commit -m "변경한 내용을 간단히 설명"
 git push
 ```
 
 `git commit`은 로컬에 변경 기록을 저장하고, `git push`는 GitHub에 전송합니다.
+
+## 한글 폰트
+
+게임 제목은 프로젝트에 포함된 나눔고딕 폰트로 표시합니다. 다른 컴퓨터에서도 `assets/fonts` 폴더를 함께 유지하세요.
+
+폰트 출처: [Google Fonts의 Nanum Gothic](https://github.com/google/fonts/tree/main/ofl/nanumgothic). 폰트에는 SIL Open Font License 1.1이 적용되며, 전문은 [assets/fonts/OFL.txt](assets/fonts/OFL.txt)에 있습니다. 이 라이선스는 포함된 폰트에 적용됩니다.

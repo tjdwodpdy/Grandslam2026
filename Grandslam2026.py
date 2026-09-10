@@ -3,6 +3,7 @@ import random
 import sys
 import math
 from functools import lru_cache
+from pathlib import Path
 
 pygame.init()
 
@@ -13,9 +14,10 @@ pygame.init()
 WIDTH = 1280
 HEIGHT = 900
 FIELD_TOP = 225
+GAME_TITLE = "그랜드슬램 2026"
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("2D Baseball")
+pygame.display.set_caption(GAME_TITLE)
 
 clock = pygame.time.Clock()
 
@@ -44,6 +46,11 @@ LIGHT_BROWN = (205, 145, 80)
 font_small = pygame.font.Font(None, 30)
 font_medium = pygame.font.Font(None, 42)
 font_big = pygame.font.Font(None, 70)
+# 실행 위치나 심볼릭 링크와 관계없이 프로젝트의 한글 폰트를 사용한다.
+font_title = pygame.font.Font(
+    str(Path(__file__).resolve().parent / "assets" / "fonts" / "NanumGothic-Regular.ttf"),
+    64,
+)
 
 @lru_cache(maxsize=256)
 def render_text(font, text, color):
@@ -237,7 +244,7 @@ def draw_start_screen():
 
     screen.fill(DARK_GREEN)
 
-    title = render_text(font_big, "2D BASEBALL", WHITE)
+    title = render_text(font_title, GAME_TITLE, WHITE)
 
     screen.blit(
         title,
