@@ -761,8 +761,8 @@ def batter_skeleton(progress, load=0., high_pitch=False):
     progress = max(0., min(1., progress))
     keys = [
         # 시간, 양손 위치 XYZ, 수평 회전각, 배트 기울기, 몸통 이동
-        # 대기 중에는 손을 몸에서 조금 떼고 높여 팔을 덜 접은 채 준비한다.
-        (0., (425, 590, -12), 145, -65, 0),
+        # 기존 팔꿈치 방향을 유지하고, 대기 자세의 팔을 약 90도인 ㄴ자로 맞춘다.
+        (0., (407, 566, -13), 145, -65, 0),
         (.20, (359, 617, 75), 155, -58, -12),
         (.30, (432, 660, 48), 100, 22, 8),
         (.43, (544, 698, -12), 0, 37, 28),
@@ -770,7 +770,7 @@ def batter_skeleton(progress, load=0., high_pitch=False):
         (.73, (192, 544, 95), -200, -37, 30),
         (.84, (327, 595, -80), -395, -10, 36),
         (.88, (327, 595, -80), -395, -10, 36),
-        (1., (425, 590, -12), -215, -65, 0),
+        (1., (407, 566, -13), -215, -65, 0),
     ]
     if high_pitch:
         # 높은 공은 손과 배트를 수평으로 내보낸 뒤 같은 높은 마무리로 잇는다.
@@ -808,18 +808,13 @@ def batter_skeleton(progress, load=0., high_pitch=False):
         reach.scale_to_length(max_reach)
     hands = center + reach
     tip = hands + axis * 178
-    ready_arm_lift = motion_curve([(0., 1.), (.20, 1.), (.30, 0.),
-                                   (.88, 0.), (1., 1.)], progress)
-    ready_arm_lift = max(0., min(1., ready_arm_lift))
     for side in (-1, 1):
         shoulder = center + shoulder_axis * (shoulder_width * side)
         delta = hands - shoulder
         distance = delta.length()
         direction = delta.normalize() if distance else pygame.Vector3(1, 0, 0)
         # 같은 길이의 상완/전완으로 손잡이를 잡는 3D 두 관절 역기구학.
-        # 준비 자세에서는 팔꿈치도 들어 올리고 스윙에 들어가며 부드럽게 푼다.
-        bend = pygame.Vector3(side * .35, 1, -.25).lerp(
-            pygame.Vector3(side * .35, -.6, -1), ready_arm_lift)
+        bend = pygame.Vector3(side * .35, 1, -.25)
         bend -= direction * bend.dot(direction)
         bend = bend.normalize()
         elbow = (shoulder + delta * .5 + bend *
