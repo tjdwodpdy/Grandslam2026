@@ -33,21 +33,16 @@ class GameTests(unittest.TestCase):
         self.assertGreater(contact.x, loaded.x)
         self.assertLess(contact.z, loaded.z)
 
-    def test_upper_swing_extends_and_finishes_behind(self):
+    def test_level_swing_extends_and_rotates_around_body(self):
         for progress in (.43, .50, .59, .66, .73):
             hands, tip, _, arms = g.batter_skeleton(progress)
             for shoulder, elbow, grip in arms:
                 self.assertGreater(shoulder.distance_to(grip), 2 * g.BATTER_ARM_LENGTH - 3)
         low_hands, low_tip, _, _ = g.batter_skeleton(.43)
         high_hands, high_tip, _, _ = g.batter_skeleton(.73)
-        self.assertLess(high_hands.y, low_hands.y - 90)
-        for hands, tip, angle_min, angle_max in (
-                (low_hands, low_tip, 30, 60),
-                (high_hands, high_tip, -150, -120)):
-            delta = g.project_batter(tip) - g.project_batter(hands)
-            angle = g.math.degrees(g.math.atan2(delta.y * 1.27, delta.x * 1.03))
-            self.assertGreater(angle, angle_min)
-            self.assertLess(angle, angle_max)
+        self.assertAlmostEqual(high_hands.y, low_hands.y)
+        for hands, tip in ((low_hands, low_tip), (high_hands, high_tip)):
+            self.assertAlmostEqual(tip.y, hands.y)
         hands, tip, _, _ = g.batter_skeleton(.73)
         self.assertGreater(hands.z, 0)
         self.assertGreater(tip.z, hands.z)
@@ -175,7 +170,7 @@ class GameTests(unittest.TestCase):
         self.assertLess(coil, 1)
         self.assertEqual(stride, 1)
 
-    def test_high_pitch_uses_level_start_and_high_finish(self):
+    def test_swing_stays_level_for_all_pitch_heights(self):
         boundary = g.strike_zone.top + g.strike_zone.height / 3
         for height in (g.strike_zone.top - 80, g.strike_zone.top, boundary):
             self.assertTrue(g.uses_high_pitch_swing(height))
@@ -184,19 +179,32 @@ class GameTests(unittest.TestCase):
         hands, tip, _, _ = g.batter_skeleton(.43, high_pitch=True)
         self.assertAlmostEqual(hands.y, tip.y)
         self.assertGreater(tip.x, hands.x)
-        high_hands, high_tip, _, _ = g.batter_skeleton(.73, high_pitch=True)
-        delta = g.project_batter(high_tip) - g.project_batter(high_hands)
-        angle = g.math.degrees(g.math.atan2(delta.y * 1.27, delta.x * 1.03))
-        self.assertGreater(angle, -150)
-        self.assertLess(angle, -120)
         low_hands, low_tip, _, _ = g.batter_skeleton(.43)
-        self.assertGreater(low_tip.y, low_hands.y)
+        self.assertAlmostEqual(low_tip.y, low_hands.y)
         for frame in range(101):
             h, t, _, arms = g.batter_skeleton(frame / 100, high_pitch=True)
             self.assertAlmostEqual(h.distance_to(t), 178)
             for shoulder, elbow, grip in arms:
                 self.assertAlmostEqual(shoulder.distance_to(elbow), g.BATTER_ARM_LENGTH)
                 self.assertAlmostEqual(elbow.distance_to(grip), g.BATTER_ARM_LENGTH)
+
+        for high in (False, True):
+            for frame in range(20, 89):
+                hands, tip, _, _ = g.batter_skeleton(frame / 100, high_pitch=high)
+                self.assertAlmostEqual(hands.y, 636)
+                self.assertAlmostEqual(tip.y, hands.y)
+
+    def test_rear_foot_moves_back_and_knee_bends_after_contact(self):
+        before = g.batter_leg_pose(True, 0, 1, .43)
+        finish = g.batter_leg_pose(True, 0, 1, .88)
+        forward = g.batter_field_turn(1)[0].normalize()
+        self.assertLess((finish[2] - before[2]).dot(forward), -25)
+        self.assertGreater(finish[1].distance_to(finish[0].lerp(finish[2], .5)),
+                           before[1].distance_to(before[0].lerp(before[2], .5)) + 20)
+        self.assertEqual(g.batter_leg_pose(False, 0, 1, .43),
+                         g.batter_leg_pose(False, 0, 1, .88))
+        self.assertEqual(g.batter_leg_pose(True, 0, 0, 1),
+                         g.batter_leg_pose(True, 0, 0, 0))
 
     def test_follow_through_wraps_in_front_of_body(self):
         for high in (False, True):

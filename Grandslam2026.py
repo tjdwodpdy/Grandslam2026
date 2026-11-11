@@ -757,31 +757,31 @@ def uses_high_pitch_swing(target_y):
 
 
 def batter_skeleton(progress, load=0., high_pitch=False):
-    """모은 팔 → 낮은 4~5시 궤적 → 높은 10~11시 궤적 → 몸 앞쪽 마무리."""
+    """준비 자세에서 배트를 눕히고 수평 회전한 뒤 몸 앞에서 마무리한다."""
     progress = max(0., min(1., progress))
     keys = [
         # 시간, 양손 위치 XYZ, 수평 회전각, 배트 기울기, 몸통 이동
         # 기존 팔꿈치 방향을 유지하고, 대기 자세의 팔을 약 90도인 ㄴ자로 맞춘다.
         (0., (407, 566, -13), 145, -65, 0),
-        (.20, (359, 617, 75), 155, -58, -12),
-        (.30, (432, 660, 48), 100, 22, 8),
-        (.43, (544, 698, -12), 0, 37, 28),
-        (.59, (460, 610, 160), -100, -12, 38),
-        (.73, (192, 544, 95), -200, -37, 30),
-        (.84, (327, 595, -80), -395, -10, 36),
-        (.88, (327, 595, -80), -395, -10, 36),
+        (.20, (359, 636, 75), 155, 0, -12),
+        (.30, (432, 636, 48), 100, 0, 8),
+        (.43, (544, 636, -12), 0, 0, 28),
+        (.59, (460, 636, 160), -100, 0, 38),
+        (.73, (192, 636, 95), -200, 0, 30),
+        (.84, (327, 636, -80), -395, 0, 36),
+        (.88, (327, 636, -80), -395, 0, 36),
         (1., (407, 566, -13), -215, -65, 0),
     ]
-    if high_pitch:
-        # 높은 공은 손과 배트를 수평으로 내보낸 뒤 같은 높은 마무리로 잇는다.
-        keys[2] = (.30, (432, 636, 48), 100, 0, 8)
-        keys[3] = (.43, (544, 636, -12), 0, 0, 28)
     hands = motion_curve([(k[0], pygame.Vector3(k[1])) for k in keys], progress)
     # 투구를 기다리는 로딩 동작은 팔과 배트를 살짝만 들어 올린다.
     hands += pygame.Vector3(-10, -14, 12) * load
     # 스윙은 이전과 반대 방향. 마무리 후에는 같은 경로로 준비 자세를 회복한다.
     yaw = motion_curve([(k[0], float(k[2])) for k in keys], progress)
     elevation = motion_curve([(k[0], float(k[3])) for k in keys], progress)
+    if .20 <= progress <= .88:
+        # 보간 때문에 위아래로 흔들리지 않도록 회전 중 높이와 기울기를 고정한다.
+        hands.y = 636 - 14 * load
+        elevation = 0.
     turn = motion_curve([(k[0], float(k[4])) for k in keys], progress)
     yaw, elevation = math.radians(yaw), math.radians(elevation)
     axis = pygame.Vector3(math.cos(yaw)*math.cos(elevation),
@@ -797,7 +797,7 @@ def batter_skeleton(progress, load=0., high_pitch=False):
     # 양쪽 어깨도 몸통과 회전해야 두 팔이 동시에 펴진다.
     shoulder_axis = pygame.Vector3(.16, 0, .987).lerp(
         pygame.Vector3(-flat.z, 0, flat.x), extension).normalize()
-    # 팔을 편 길이는 유지하면서 손도 낮은 곳에서 높은 곳으로 이동한다.
+    # 팔 길이를 유지하면서 손과 배트가 몸통 주위를 수평으로 돈다.
     arm_span = 2 * BATTER_ARM_LENGTH - 1
     shoulder_width = BATTER_SHOULDER_HALF_WIDTH
     target_reach = reach.normalize() * math.sqrt(arm_span**2 - shoulder_width**2)
@@ -860,8 +860,8 @@ def batter_field_turn(stride):
     return direction * (36 * stride), foot_axis, head_yaw
 
 
-def batter_leg_pose(near, load, stride):
-    """먼쪽 다리가 내딛고 가까운 다리는 발목을 축으로 회전한다."""
+def batter_leg_pose(near, load, stride, progress=0.):
+    """앞발은 내딛고, 뒷발은 회전 후 뒤로 빠지며 무릎을 굽힌다."""
     step, step_axis, _ = batter_field_turn(stride)
     offset = 0 if near else -6
     hip = pygame.Vector2(327 + offset, 729)
@@ -880,8 +880,15 @@ def batter_leg_pose(near, load, stride):
         target = pygame.Vector2(shortstop.x / 1.03, shortstop.y / 1.27).normalize()
         angle = math.atan2(target.y, target.x) * stride
         axis = pygame.Vector2(math.cos(angle), math.sin(angle))
-        # 무릎의 굽힘 방향도 발끝과 함께 돌아가며 지지 다리가 펴진다.
-        bend = 27 * (1 - stride) + 8 * stride
+        finish = max(0., min(1., (progress - .50) / .38))
+        finish = finish * finish * (3 - 2 * finish)
+        recovery = max(0., min(1., (progress - .88) / .12))
+        finish *= 1 - recovery * recovery * (3 - 2 * recovery)
+        # 임팩트 이후 뒷발을 투수 반대쪽으로 빼고 굽힌 무릎으로 마무리한다.
+        ankle -= target * (28 * finish)
+        hip.y += 6 * finish
+        # 무릎은 발끝과 함께 돌아가며, 마무리 때 다시 굽혀 준다.
+        bend = 27 * (1 - stride) + 8 * stride + 30 * finish
         knee = hip.lerp(ankle, .5) + axis * bend
     return hip, knee, ankle, axis
 
@@ -1006,7 +1013,7 @@ def draw_foreground_batter():
                         (screen_x - 35, screen_floor - 13, 94, 24))
     # 기존과 반대로 먼쪽 다리를 들어 내딛고 가까운 다리는 제자리 회전한다.
     for near, color in ((False, (27, 41, 59)), (True, (37, 54, 75))):
-        hip, knee, ankle, leg_axis = batter_leg_pose(near, load * (1 - stride), stride)
+        hip, knee, ankle, leg_axis = batter_leg_pose(near, load * (1 - stride), stride, progress)
         pygame.draw.line(screen, color, view(hip), view(knee), 31)
         pygame.draw.circle(screen, color, view(knee), 15)
         ankle_screen = (round(screen_x + (ankle[0] - x) * 1.03),
