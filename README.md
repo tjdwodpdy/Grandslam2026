@@ -18,7 +18,7 @@ python3 Grandslam2026.py
 이미 가상환경을 설치했다면 매번 다음 명령으로 실행할 수 있습니다.
 
 ```bash
-cd /home/student11/save-space01
+cd "/home/student11/베타 버전"
 source .venv/bin/activate
 python Grandslam2026.py
 ```
