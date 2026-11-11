@@ -777,7 +777,8 @@ def batter_skeleton(progress, load=0., high_pitch=False):
         keys[2] = (.30, (432, 636, 48), 100, 0, 8)
         keys[3] = (.43, (544, 636, -12), 0, 0, 28)
     hands = motion_curve([(k[0], pygame.Vector3(k[1])) for k in keys], progress)
-    hands += pygame.Vector3(-10, -48, 12) * load
+    # 투구를 기다리는 로딩 동작은 팔과 배트를 살짝만 들어 올린다.
+    hands += pygame.Vector3(-10, -14, 12) * load
     # 스윙은 이전과 반대 방향. 마무리 후에는 같은 경로로 준비 자세를 회복한다.
     yaw = motion_curve([(k[0], float(k[2])) for k in keys], progress)
     elevation = motion_curve([(k[0], float(k[3])) for k in keys], progress)

@@ -66,8 +66,9 @@ class GameTests(unittest.TestCase):
         self.assertAlmostEqual(g.batter_preparation(1700)[1], .5)
         ready_hands, ready_tip, _, _ = g.batter_skeleton(0)
         loaded_hands, loaded_tip, _, _ = g.batter_skeleton(0, 1)
-        self.assertLess(loaded_hands.y, ready_hands.y - 30)
-        self.assertLess(loaded_tip.y, ready_tip.y - 30)
+        for ready, loaded in ((ready_hands, loaded_hands), (ready_tip, loaded_tip)):
+            self.assertGreater(ready.y - loaded.y, 5)
+            self.assertLess(ready.y - loaded.y, 20)
         g.game_state = 'PITCHING'
         before = g.batter_preparation(2500)
         g.swing_started = 2500
